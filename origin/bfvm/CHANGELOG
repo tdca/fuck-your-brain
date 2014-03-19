@@ -1,0 +1,26 @@
+CHANGE LOG
+Last Modified:2011-12-09
+==================================================
+  Brainfuck Machine is an implement of the concept
+ which is designed by KPSN.Leo and inspired by 
+Brainfuck programming language. And the use of 
+this BFM is to help us understand how an machine
+ work and how the program be executed. 
+
+  And more functions and usage of this machine will
+ be designed & implete soon.
+==================================================
+ 
+version 0.01
+2011-12-08
+
+*现了编译,解释和Debug等功能,大概具备了一个虚拟机的形态
+*克服了编译完成后读取字节码转换成指令过程中的错误
+*二进制码设计完成
+*多模块化处理,方便修改和扩展,并且方便其他程序调用
+
+version 0.00
+2011-12-06
+
+*能够进行简单的Brainfuck代码的解释工作
+*实现了条件控制系统的设计
