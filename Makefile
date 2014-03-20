@@ -1,16 +1,23 @@
 
 CC=gcc
+OBJS=obj/bfi.o obj/stack.o 
+TARGET=bfi
+CFLAGS=-Iinclude -Wall
+RM=rm -rf
 
-.PHONY: int com all
 
-all: int com
+.PHONY: clean env int
 
-int: src/bfi.c
-	gcc src/bfi.c -o bfi
+int: $(OBJS)
+	$(CC) -o $(TARGET) $(OBJS)
 
-com: src/bfvm.c
-	gcc src/bfvm.c -o bfvm
+$(OBJS): obj/%.o: src/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+env: obj bin
+	mkdir -p obj
+	mkdir -p bin
 
 clean:
-	rm -rf bfi bfvm obj
+	$(RM) $(OBJS)
 
