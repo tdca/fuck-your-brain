@@ -3,3 +3,4 @@ bfi
 obj/*
 *.o
 *.byte
+debug*
