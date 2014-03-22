@@ -10,6 +10,8 @@ char instruction[T];
 unsigned char iset[256] = {0};
 #define regist_ins(c) iset[(int)c] = 1
 
+#define isdigit(c) ( (c) >= '0' && (c) <= '9' )
+
 stack_t block;
 stack_t fun;
 stack_t call;
@@ -36,13 +38,16 @@ void init_iset(){
 	regist_ins(';');
 	regist_ins('*');
 	regist_ins('!');
+	regist_ins('%');
 }
 
 void exec(){
 	int fdef = 0,fcall = 0;
 	char c='\1';	//current-instruction
+	char cache;
+	int cache_cnt=0;
 	while(c){
-		c=instruction[i++];	//get each instruction
+		if(cache_cnt) { c=cache; cache_cnt--; } else { c=instruction[i++];}
 		if(f&&(c!=']')){ continue; }
 		if(fdef&&(c!=';')){ continue; }
 		switch(c){
@@ -59,6 +64,17 @@ void exec(){
 			case '^': i=pop(&call);  break;
 			case '*': fcall++;       break;
 			case '!': push(&call,i); i = fun.chunk[fcall]; fcall=0; break;
+			case '%': 
+				cache_cnt=0;
+				cache=instruction[i-2];
+				c=instruction[i];
+				while(isdigit(c)){
+					cache_cnt = cache_cnt*10 + (c-'0');
+					c=instruction[++i];
+				}
+				i--,cache_cnt--;
+				if(cache_cnt <= 0) cache_cnt = 0;
+				break;
 			default:break;
 		}
 	}
@@ -71,8 +87,19 @@ int main(int argc,char* argv[]){
 	init_iset();
 	if(argc-1){
 		if( !(b=fopen(argv[1],"r")) ) return -1;
-		while((c=fgetc(b))!=EOF)
-			if(iset[c]) instruction[i++] = c;
+		while((c=fgetc(b))!=EOF){
+			if(iset[c]){ 
+				instruction[i++] = c;
+				if(c == '%'){
+					c=fgetc(b);
+					while(isdigit(c)){
+						instruction[i++] = c;
+						c=fgetc(b);
+					}
+					ungetc(c,b);
+				}
+			}
+		}
         fclose(b);
 		exec();
 	}else{
@@ -90,9 +117,5 @@ int main(int argc,char* argv[]){
 }
 
 void debug(){
-	int c;
-	while((c = pop(&fun))){
-		printf("%d",c);
-		printf("%c",instruction[c]);
-	}
-}
+	printf("%d,%c\n",memory[p],instruction[i]);	
+}	
