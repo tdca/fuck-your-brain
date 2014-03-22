@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include "stack.h"
 
-#define T 65536
+#define MAGIC_NUMBER 65536
 
-int memory[T];
-char instruction[T];
+int memory[MAGIC_NUMBER];
+char instruction[MAGIC_NUMBER];
 
 unsigned char iset[256] = {0};
 #define regist_ins(c) iset[(int)c] = 1
@@ -16,63 +16,84 @@ stack_t block;
 stack_t fun;
 stack_t call;
 //stack_t data_stack;
-//stack_t addr_stack;
-int p=0,f=0,i=0;
-
-void debug();
+stack_t addr;
+int data_ptr=0,b_lock=0,ins_ptr=0;
 
 void init_iset(){
-	// basic
-	regist_ins('>');
-	regist_ins('<');
-	regist_ins('+');
-	regist_ins('-');
-	regist_ins('.');
-	regist_ins(',');
-	regist_ins('[');
-	regist_ins(']');
-	
-	// ext-fun
-	regist_ins('$');
-	regist_ins('^');
-	regist_ins(';');
-	regist_ins('*');
-	regist_ins('!');
-	regist_ins('%');
+	char c,*ins=
+		/* --basic-- */    "<>+-.,[]" 
+		/* ext-function */ "$^;*!"
+		/* ext-stack */    "&@"
+		/* ext-literal */  "%";
+	while((c = *(ins++))){
+		regist_ins(c);
+	}
 }
 
 void exec(){
-	int fdef = 0,fcall = 0;
-	char c='\1';	//current-instruction
+	int def_lock = 0,call_ptr = 0;
+	char current='\1';
 	char cache;
 	int cache_cnt=0;
-	while(c){
-		if(cache_cnt) { c=cache; cache_cnt--; } else { c=instruction[i++];}
-		if(f&&(c!=']')){ continue; }
-		if(fdef&&(c!=';')){ continue; }
-		switch(c){
-			case '>': p=(p+1)%T;  break;
-			case '<': p=(p-1)%T;  break;
-			case '+': memory[p]++;  break;
-			case '-': memory[p]--;  break;
-			case '.': putchar(memory[p]);  break;
-			case ',': if((memory[p]=fgetc(stdin)) == EOF) return; break;
-			case '[': if(memory[p]){ f = 0; push(&block,i);}else{ f = 1; }       break;
-			case ']': (memory[p]?(i=top(&block)):(pop(&block),f=0));    break;
-			case '$': push(&fun,i); fdef=1; break;
-			case ';': if(fdef) fdef = 0;else i=pop(&call); break;
-			case '^': i=pop(&call);  break;
-			case '*': fcall++;       break;
-			case '!': push(&call,i); i = fun.chunk[fcall]; fcall=0; break;
+	while(current){
+		if(cache_cnt){ 
+			current=cache; cache_cnt--;
+		}else
+			current=instruction[ins_ptr++];
+		if(b_lock&&(current!=']')) continue;
+		if(def_lock&&(current!=';')) continue;
+		switch(current){
+			case '>': data_ptr=(data_ptr+1)%MAGIC_NUMBER;  break;
+			case '<': data_ptr=(data_ptr-1)%MAGIC_NUMBER;  break;
+			case '+': memory[data_ptr]++;  break;
+			case '-': memory[data_ptr]--;  break;
+			case '.': putchar(memory[data_ptr]);  break;
+			case ',': 
+				if((memory[data_ptr]=fgetc(stdin)) == EOF)
+					return;
+				break;
+			case '[': 
+				if(memory[data_ptr])
+					b_lock = 0,push(&block,ins_ptr);
+				else 
+					b_lock = 1;
+				break;
+			case ']': 
+				if(memory[data_ptr])
+					ins_ptr=top(&block);
+				else
+					pop(&block),b_lock=0;
+				break;
+			
+			case '$': push(&fun,ins_ptr); def_lock=1; break;
+			case ';': 
+				if(def_lock) 
+					def_lock = 0;
+				else 
+					ins_ptr=pop(&call); 
+				break;
+			case '^': ins_ptr=pop(&call);  break;
+			case '*': call_ptr++;          break;
+			case '!': 
+				push(&call,ins_ptr); 
+				ins_ptr = fun.chunk[call_ptr]; 
+				call_ptr=0; 
+				break;
+			case '&':
+				push(&addr,data_ptr);
+				break;
+			case '@':
+				data_ptr=pop(&addr);
+				break;
 			case '%': 
 				cache_cnt=0;
-				cache=instruction[i-2];
-				c=instruction[i];
-				while(isdigit(c)){
-					cache_cnt = cache_cnt*10 + (c-'0');
-					c=instruction[++i];
+				cache=instruction[ins_ptr-2];
+				current=instruction[ins_ptr];
+				while(isdigit(current)){
+					cache_cnt = cache_cnt*10 + (current-'0');
+					current=instruction[++ins_ptr];
 				}
-				i--,cache_cnt--;
+				ins_ptr--,cache_cnt--;
 				if(cache_cnt <= 0) cache_cnt = 0;
 				break;
 			default:break;
@@ -83,17 +104,17 @@ void exec(){
 int main(int argc,char* argv[]){
 	FILE* b;
 	short c;
-	int i=0;
+	int ins_ptr=0;
 	init_iset();
 	if(argc-1){
 		if( !(b=fopen(argv[1],"r")) ) return -1;
 		while((c=fgetc(b))!=EOF){
 			if(iset[c]){ 
-				instruction[i++] = c;
+				instruction[ins_ptr++] = c;
 				if(c == '%'){
 					c=fgetc(b);
 					while(isdigit(c)){
-						instruction[i++] = c;
+						instruction[ins_ptr++] = c;
 						c=fgetc(b);
 					}
 					ungetc(c,b);
@@ -107,7 +128,7 @@ int main(int argc,char* argv[]){
 	    puts("Brainfuck Intepreter");
 	    puts("  --  By Kimmy Leo <kenpusney@gmail.com>");
 	    printf("- ");
-	    while(scanf("%s",instruction+i) != EOF){
+	    while(scanf("%s",instruction+ins_ptr) != EOF){
 	    	exec();
 	    	printf("\n- ");
 	    }
@@ -116,6 +137,3 @@ int main(int argc,char* argv[]){
 	return 0;
 }
 
-void debug(){
-	printf("%d,%c\n",memory[p],instruction[i]);	
-}	
