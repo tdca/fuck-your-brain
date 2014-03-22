@@ -15,7 +15,7 @@ unsigned char iset[256] = {0};
 stack_t block;
 stack_t fun;
 stack_t call;
-//stack_t data_stack;
+stack_t data;
 stack_t addr;
 int data_ptr=0,b_lock=0,ins_ptr=0;
 
@@ -23,7 +23,7 @@ void init_iset(){
 	char c,*ins=
 		/* --basic-- */    "<>+-.,[]" 
 		/* ext-function */ "$^;*!"
-		/* ext-stack */    "&@"
+		/* ext-stack */    "&@:?"
 		/* ext-literal */  "%";
 	while((c = *(ins++))){
 		regist_ins(c);
@@ -84,6 +84,12 @@ void exec(){
 				break;
 			case '@':
 				data_ptr=pop(&addr);
+				break;
+			case '?':
+				push(&data,memory[data_ptr]);
+				break;
+			case ':':
+				memory[data_ptr]=pop(&data);
 				break;
 			case '%': 
 				cache_cnt=0;
