@@ -14,7 +14,7 @@ int: $(OBJS)
 $(OBJS): obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-env: obj bin
+env: 
 	mkdir -p obj
 	mkdir -p bin
 
