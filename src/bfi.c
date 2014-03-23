@@ -24,7 +24,8 @@ void init_iset(){
 		/* --basic-- */    "<>+-.,[]" 
 		/* ext-function */ "$^;*!"
 		/* ext-stack */    "&@:?"
-		/* ext-literal */  "%";
+		/* ext-literal */  "%"
+		/* ext-assign */   "=";
 	while((c = *(ins++))){
 		regist_ins(c);
 	}
@@ -102,6 +103,16 @@ void exec(){
 				ins_ptr--,cache_cnt--;
 				if(cache_cnt <= 0) cache_cnt = 0;
 				break;
+			case '=':
+				current = instruction[ins_ptr++];
+				switch(current){
+					case '@': memory[data_ptr] = top(&addr); break;
+					case '^': memory[data_ptr] = top(&call); break;
+					case '?': memory[data_ptr] = top(&data); break;
+					case '&': data_ptr = memory[data_ptr]; break;
+					case '$': ins_ptr  = memory[data_ptr]; break;
+					default: ins_ptr--; break;
+				}
 			default:break;
 		}
 	}
