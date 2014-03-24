@@ -15,7 +15,7 @@ unsigned char iset[256] = {0};
 stack_t block;
 stack_t fun;
 stack_t call;
-//stack_t data_stack;
+stack_t data;
 stack_t addr;
 int data_ptr=0,b_lock=0,ins_ptr=0;
 
@@ -23,8 +23,9 @@ void init_iset(){
 	char c,*ins=
 		/* --basic-- */    "<>+-.,[]" 
 		/* ext-function */ "$^;*!"
-		/* ext-stack */    "&@"
-		/* ext-literal */  "%";
+		/* ext-stack */    "&@:?"
+		/* ext-literal */  "%"
+		/* ext-assign */   "=";
 	while((c = *(ins++))){
 		regist_ins(c);
 	}
@@ -85,6 +86,12 @@ void exec(){
 			case '@':
 				data_ptr=pop(&addr);
 				break;
+			case '?':
+				push(&data,memory[data_ptr]);
+				break;
+			case ':':
+				memory[data_ptr]=pop(&data);
+				break;
 			case '%': 
 				cache_cnt=0;
 				cache=instruction[ins_ptr-2];
@@ -96,6 +103,24 @@ void exec(){
 				ins_ptr--,cache_cnt--;
 				if(cache_cnt <= 0) cache_cnt = 0;
 				break;
+			case '=':
+				current = instruction[ins_ptr++];
+				switch(current){
+					case '@': memory[data_ptr] = top(&addr);  break;
+					case '^': memory[data_ptr] = top(&call);  break;
+					case ':': memory[data_ptr] = top(&data);  break;
+					case '[': memory[data_ptr] = top(&block); break;
+
+					case '>': 
+						memory[data_ptr] = memory[(data_ptr+1)%MAGIC_NUMBER];
+						break;
+					case '<': 
+						memory[data_ptr] = memory[(data_ptr-1)%MAGIC_NUMBER];
+						break;
+					case '&': data_ptr = memory[data_ptr]; break;
+					case '!': push(&call,ins_ptr); ins_ptr = memory[data_ptr]; break;
+					default: ins_ptr--; break;
+				}
 			default:break;
 		}
 	}
