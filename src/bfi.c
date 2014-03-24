@@ -106,11 +106,19 @@ void exec(){
 			case '=':
 				current = instruction[ins_ptr++];
 				switch(current){
-					case '@': memory[data_ptr] = top(&addr); break;
-					case '^': memory[data_ptr] = top(&call); break;
-					case '?': memory[data_ptr] = top(&data); break;
+					case '@': memory[data_ptr] = top(&addr);  break;
+					case '^': memory[data_ptr] = top(&call);  break;
+					case ':': memory[data_ptr] = top(&data);  break;
+					case '[': memory[data_ptr] = top(&block); break;
+
+					case '>': 
+						memory[data_ptr] = memory[(data_ptr+1)%MAGIC_NUMBER];
+						break;
+					case '<': 
+						memory[data_ptr] = memory[(data_ptr-1)%MAGIC_NUMBER];
+						break;
 					case '&': data_ptr = memory[data_ptr]; break;
-					case '$': ins_ptr  = memory[data_ptr]; break;
+					case '!': push(&call,ins_ptr); ins_ptr = memory[data_ptr]; break;
 					default: ins_ptr--; break;
 				}
 			default:break;
