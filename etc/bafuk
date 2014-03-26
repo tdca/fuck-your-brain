@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+
+CONF_FILE = 'bf-lit.yml'
+
+config = YAML.load(File.open(CONF_FILE))
+
+file = ARGF.read
+
+config.keys.each do |key|
+  file = file.gsub(Regexp.new("\\b#{key}\\b"),config[key]);
+end
+file = file.gsub(/\s/,"");
+puts file
+

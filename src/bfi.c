@@ -138,8 +138,9 @@ int main(int argc,char* argv[]){
 				instruction[ins_ptr++] = c;
 				if(c == '%'){
 					c=fgetc(b);
-					while(isdigit(c)){
-						instruction[ins_ptr++] = c;
+					while(isdigit(c)||c==' '){
+            if(c != ' ')
+						  instruction[ins_ptr++] = c;
 						c=fgetc(b);
 					}
 					ungetc(c,b);
