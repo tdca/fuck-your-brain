@@ -1,4 +1,4 @@
-moveR offset 48
+moveR offset 48  # this is comments ;
 ref this
 set this as addr
 output this
