@@ -54,8 +54,8 @@ void engine_init(struct engine* engine) {
     engine->cache_cnt = 0;
 }
 
-inshdl_t dispatch(char ins){
-    return __dispatch_tbl[(int)ins];
+inshdl_t dispatch(char ins) {
+    return __dispatch_tbl[(int) ins];
 }
 
 void ptr_mov_right(struct engine* eng, struct thunk* tk) {
@@ -97,32 +97,32 @@ void block_end(struct engine* eng, struct thunk* tk) {
         pop(&tk->block), eng->b_lock = 0;
 }
 
-void def_begin(struct engine* eng, struct thunk* tk){
+void def_begin(struct engine* eng, struct thunk* tk) {
 
 }
 
-void def_end(struct engine* eng, struct thunk* tk){
+void def_end(struct engine* eng, struct thunk* tk) {
 
 }
 
-void def_return(struct engine* eng, struct thunk* tk){
+void def_return(struct engine* eng, struct thunk* tk) {
 
 }
 
-void call_ptr_inc(struct engine* eng, struct thunk* tk){
+void call_ptr_inc(struct engine* eng, struct thunk* tk) {
 
 }
 
-void call(struct engine* eng, struct thunk* tk){
+void call(struct engine* eng, struct thunk* tk) {
 
 }
 
-void ref_this(struct engine* eng, struct thunk* tk){
-    
+void ref_this(struct engine* eng, struct thunk* tk) {
+
 }
 
-void push_this(struct engine* eng, struct thunk* tk){
-    
+void push_this(struct engine* eng, struct thunk* tk) {
+
 }
 
 void exec(struct thunk* tk) {
@@ -137,15 +137,15 @@ void exec(struct thunk* tk) {
         if (eng.b_lock && (eng.current != ']')) continue;
         if (eng.def_lock && (eng.current != ';')) continue;
         switch (eng.current) {
-            case '>': 
+            case '>':
             case '<':
             case '+':
-            case '-': 
-            case '.': 
+            case '-':
+            case '.':
             case ',':
             case '[':
             case ']':
-                dispatch(eng.current)(&eng,tk);
+                dispatch(eng.current)(&eng, tk);
                 break;
 
             case '$': push(&tk->fun, eng.ins_ptr);
@@ -220,11 +220,11 @@ void exec(struct thunk* tk) {
     }
 }
 
-void dispatch_init(){
+void dispatch_init() {
     int i;
     char instbl[] = {
-        '>','<','+','-',
-        ',','.','[',']'
+        '>', '<', '+', '-',
+        ',', '.', '[', ']'
     };
     inshdl_t hdltbl[] = {
         ptr_mov_right,
@@ -236,8 +236,8 @@ void dispatch_init(){
         block_begin,
         block_end
     };
-    for(i=0; i < sizeof(instbl); i++)
-        regist_hdl( instbl[i], hdltbl[i] );
+    for (i = 0; i < sizeof (instbl); i++)
+        regist_hdl(instbl[i], hdltbl[i]);
 }
 
 int main(int argc, char* argv[]) {
