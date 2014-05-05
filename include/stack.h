@@ -6,11 +6,11 @@
 #define T 65536
 
 typedef struct stack_t {
-	unsigned int pos;
-	int chunk[T];
+    unsigned int pos;
+    int chunk[T];
 } stack_t;
 
-void push(stack_t* stack,int data);
+void push(stack_t* stack, int data);
 int pop(stack_t* stack);
 int top(stack_t* stack);
 

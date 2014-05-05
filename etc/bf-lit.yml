@@ -1,0 +1,41 @@
+---
+  "moveL"  :  "<"
+  "moveR"  :  ">"  
+  "incr"   :  "+"
+  "decr"   :  "-"
+  "input"  :  ","
+  "output" :  "."
+  "when"   :  "["
+  "while"  :  "["
+  "done"   :  "]"
+  
+  "set"    :  "="
+  "as"     :  ""
+  
+  "left"   :  "<"
+  "right"  :  ">"
+  "addr"   :  "@"
+  "call"   :  "^"
+  "data"   :  ":"
+  "block"  :  "["
+  
+  "assign" :  "="
+  "to"     :  ""
+  
+  "ptr"    :  "&"
+  "ins"    :  "!"
+  
+  "define" :  "$"
+  "end"    :  ";"
+  "return" :  "^"
+  "fun"    :  "*"
+  "call"   :  "!"
+  "ref"    :  "&"
+  "deref"  :  "@"
+  "push"   :  "?"
+  "pop"    :  ":"
+  
+  "by"     :  "%"
+  "count"  :  "%"
+  "offset" :  "%"
+  "this"   :  ""

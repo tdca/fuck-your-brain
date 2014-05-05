@@ -2,7 +2,7 @@
 CC=gcc
 OBJS=obj/bfi.o obj/stack.o 
 TARGET=bfi
-CFLAGS=-Iinclude -Wall
+CFLAGS=-Iinclude -Wall -pg -g2
 RM=rm -rf
 
 
