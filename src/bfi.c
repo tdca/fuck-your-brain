@@ -50,7 +50,7 @@ void init_iset() {
 void engine_init(struct engine* engine) {
     engine->def_lock = 0;
     engine->call_ptr = 0;
-    engine->current = '\1';
+    engine->current = 'a';
     engine->cache_cnt = 0;
 }
 
@@ -98,146 +98,131 @@ void block_end(struct engine* eng, struct thunk* tk) {
 }
 
 void def_begin(struct engine* eng, struct thunk* tk) {
-
+    push(&tk->fun, eng->ins_ptr);
+    eng->def_lock = 1;
 }
 
 void def_end(struct engine* eng, struct thunk* tk) {
+    if (eng->def_lock)
+        eng->def_lock = 0;
+    else
+        eng->ins_ptr = pop(&tk->call);
 
 }
 
 void def_return(struct engine* eng, struct thunk* tk) {
-
+    eng->ins_ptr = pop(&tk->call);
 }
 
 void call_ptr_inc(struct engine* eng, struct thunk* tk) {
-
+    eng->call_ptr++;
 }
 
 void call(struct engine* eng, struct thunk* tk) {
-
+    push(&tk->call, eng->ins_ptr);
+    eng->ins_ptr = tk->fun.chunk[eng->call_ptr];
+    eng->call_ptr = 0;
 }
 
-void ref_this(struct engine* eng, struct thunk* tk) {
-
+void push_addr(struct engine* eng, struct thunk* tk) {
+    push(&tk->addr, eng->data_ptr);
 }
 
-void push_this(struct engine* eng, struct thunk* tk) {
+void pop_addr(struct engine* eng, struct thunk* tk) {
+    eng->data_ptr = pop(&tk->addr);
+}
 
+void push_data(struct engine* eng, struct thunk* tk) {
+    push(&tk->data, tk->memory[eng->data_ptr]);
+}
+
+void pop_data(struct engine* eng, struct thunk* tk) {
+    tk->memory[eng->data_ptr] = pop(&tk->data);
+}
+
+void power(struct engine* eng, struct thunk* tk) {
+    eng->cache_cnt = 0;
+    eng->cache = tk->instruction[eng->ins_ptr - 2];
+    eng->current = tk->instruction[eng->ins_ptr];
+    while (isdigit(eng->current)) {
+        eng->cache_cnt = eng->cache_cnt * 10 + (eng->current - '0');
+        eng->current = tk->instruction[++eng->ins_ptr];
+    }
+    eng->ins_ptr--, eng->cache_cnt--;
+    if (eng->cache_cnt <= 0) eng->cache_cnt = 0;
+        return;
+}
+
+void assign(struct engine* eng, struct thunk* tk) {
+    eng->current = tk->instruction[eng->ins_ptr++];
+    switch (eng->current) {
+        case '@': tk->memory[eng->data_ptr] = top(&tk->addr);
+            break;
+        case '^': tk->memory[eng->data_ptr] = top(&tk->call);
+            break;
+        case ':': tk->memory[eng->data_ptr] = top(&tk->data);
+            break;
+        case '[': tk->memory[eng->data_ptr] = top(&tk->block);
+            break;
+        case '>':
+            tk->memory[eng->data_ptr] = tk->memory[(eng->data_ptr + 1) % MAGIC_NUMBER];
+            break;
+        case '<':
+            tk->memory[eng->data_ptr] = tk->memory[(eng->data_ptr - 1) % MAGIC_NUMBER];
+            break;
+        case '&': eng->data_ptr = tk->memory[eng->data_ptr];
+            break;
+        case '!': push(&tk->call, eng->ins_ptr);
+            eng->ins_ptr = tk->memory[eng->data_ptr];
+            break;
+        default: eng->ins_ptr--;
+            break;
+    }
 }
 
 void exec(struct thunk* tk) {
     struct engine eng = {};
     engine_init(&eng);
     while (eng.current) {
-        if (eng.cache_cnt) {
+        if (eng.cache_cnt > 0) {
             eng.current = eng.cache;
             eng.cache_cnt--;
         } else
             eng.current = tk->instruction[eng.ins_ptr++];
         if (eng.b_lock && (eng.current != ']')) continue;
         if (eng.def_lock && (eng.current != ';')) continue;
-        switch (eng.current) {
-            case '>':
-            case '<':
-            case '+':
-            case '-':
-            case '.':
-            case ',':
-            case '[':
-            case ']':
-                dispatch(eng.current)(&eng, tk);
-                break;
-
-            case '$': push(&tk->fun, eng.ins_ptr);
-                eng.def_lock = 1;
-                break;
-            case ';':
-                if (eng.def_lock)
-                    eng.def_lock = 0;
-                else
-                    eng.ins_ptr = pop(&tk->call);
-                break;
-            case '^': eng.ins_ptr = pop(&tk->call);
-                break;
-            case '*': eng.call_ptr++;
-                break;
-            case '!':
-                push(&tk->call, eng.ins_ptr);
-                eng.ins_ptr = tk->fun.chunk[eng.call_ptr];
-                eng.call_ptr = 0;
-                break;
-            case '&':
-                push(&tk->addr, eng.data_ptr);
-                break;
-            case '@':
-                eng.data_ptr = pop(&tk->addr);
-                break;
-            case '?':
-                push(&tk->data, tk->memory[eng.data_ptr]);
-                break;
-            case ':':
-                tk->memory[eng.data_ptr] = pop(&tk->data);
-                break;
-            case '%':
-                eng.cache_cnt = 0;
-                eng.cache = tk->instruction[eng.ins_ptr - 2];
-                eng.current = tk->instruction[eng.ins_ptr];
-                while (isdigit(eng.current)) {
-                    eng.cache_cnt = eng.cache_cnt * 10 + (eng.current - '0');
-                    eng.current = tk->instruction[++eng.ins_ptr];
-                }
-                eng.ins_ptr--, eng.cache_cnt--;
-                if (eng.cache_cnt <= 0) eng.cache_cnt = 0;
-                break;
-            case '=':
-                eng.current = tk->instruction[eng.ins_ptr++];
-                switch (eng.current) {
-                    case '@': tk->memory[eng.data_ptr] = top(&tk->addr);
-                        break;
-                    case '^': tk->memory[eng.data_ptr] = top(&tk->call);
-                        break;
-                    case ':': tk->memory[eng.data_ptr] = top(&tk->data);
-                        break;
-                    case '[': tk->memory[eng.data_ptr] = top(&tk->block);
-                        break;
-
-                    case '>':
-                        tk->memory[eng.data_ptr] = tk->memory[(eng.data_ptr + 1) % MAGIC_NUMBER];
-                        break;
-                    case '<':
-                        tk->memory[eng.data_ptr] = tk->memory[(eng.data_ptr - 1) % MAGIC_NUMBER];
-                        break;
-                    case '&': eng.data_ptr = tk->memory[eng.data_ptr];
-                        break;
-                    case '!': push(&tk->call, eng.ins_ptr);
-                        eng.ins_ptr = tk->memory[eng.data_ptr];
-                        break;
-                    default: eng.ins_ptr--;
-                        break;
-                }
-            default:break;
-        }
+        if(dispatch(eng.current)) dispatch(eng.current)(&eng, tk);
     }
 }
 
 void dispatch_init() {
     int i;
     char instbl[] = {
-        '>', '<', '+', '-',
-        ',', '.', '[', ']'
+        '>', '<',
+        '+', '-',
+        ',', '.',
+        '[', ']',
+        '$', ';',
+        '^', '*', '!',
+        '&', '@',
+        '?', ':',
+        '%', '='
     };
     inshdl_t hdltbl[] = {
-        ptr_mov_right,
-        ptr_mov_left,
-        data_inc,
-        data_dec,
-        input,
-        output,
-        block_begin,
-        block_end
+        ptr_mov_right,  ptr_mov_left,
+        data_inc,       data_dec,
+        input,          output,
+        block_begin,    block_end,
+        def_begin,      def_end,
+        def_return,     call_ptr_inc,   call,
+        push_addr,      pop_addr,
+        push_data,      pop_data,
+        power,          assign
     };
-    for (i = 0; i < sizeof (instbl); i++)
+    for (i = 0; i < sizeof (instbl); i++){
+//        printf("%c %x\n",instbl[i],(unsigned int)hdltbl[i]);
         regist_hdl(instbl[i], hdltbl[i]);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -266,17 +251,11 @@ int main(int argc, char* argv[]) {
         struct thunk tk = {};
         fclose(b);
         memcpy(tk.instruction, instruction, ins_ptr);
+//        printf("%x\n", (int)&tk);
+//        printf("%s\n", tk.instruction);
         exec(&tk);
     } else {
-        puts("Interactive mode now on");
-        puts("Brainfuck Intepreter");
-        puts("  --  By Kimmy Leo <kenpusney@gmail.com>");
-        printf("- ");
-        //        while (scanf("%s", instruction + ins_ptr) != EOF) {
-        //            //exec();
-        //            printf("\n- ");
-        //        }
-        puts("\nBye bye!");
+        puts("[USAGE]- bfi <script-file>");
     }
     return 0;
 }
