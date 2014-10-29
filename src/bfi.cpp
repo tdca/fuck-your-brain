@@ -36,13 +36,15 @@ unsigned char iset[256] = {0};
 int data_ptr = 0, b_lock = 0, ins_ptr = 0;
 
 void init_iset() {
-    char c, *ins =
+    char c;
+    int i = 0;
+    const char* ins =
             /* --basic-- */ "<>+-.,[]"
             /* ext-function */ "$^;*!"
             /* ext-stack */ "&@:?"
             /* ext-literal */ "%"
             /* ext-assign */ "=";
-    while ((c = *(ins++))) {
+    while ((c = *(ins+(i++)))) {
         regist_ins(c);
     }
 }

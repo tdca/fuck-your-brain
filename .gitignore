@@ -6,3 +6,4 @@ obj/*
 debug*
 nbproject
 .gitignore
+bfi.exe

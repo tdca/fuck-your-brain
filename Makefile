@@ -1,8 +1,8 @@
 
-CC=gcc
+CC=clang++
 OBJS=obj/bfi.o obj/stack.o 
 TARGET=bfi
-CFLAGS=-Iinclude -Wall -pg -g2
+CFLAGS=-Iinclude -Wall -g2
 RM=rm -rf
 
 
@@ -11,7 +11,7 @@ RM=rm -rf
 int: $(OBJS)
 	$(CC) -o $(TARGET) $(OBJS)
 
-$(OBJS): obj/%.o: src/%.c
+$(OBJS): obj/%.o: src/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 env: 
