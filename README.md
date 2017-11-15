@@ -1,4 +1,4 @@
-fuck-your-brain
+Enhanced brain-fuck
 ===============
 
 Try Brainfuck Interpreter.

@@ -2,7 +2,7 @@
 CC=clang++
 OBJS=obj/bfi.o obj/stack.o 
 TARGET=bfi
-CFLAGS=-Iinclude -Wall -g2
+CFLAGS=-Iinclude -Wall -g -pg -g2 -std=c++1z
 RM=rm -rf
 
 
